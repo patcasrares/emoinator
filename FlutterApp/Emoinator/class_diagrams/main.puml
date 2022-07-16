@@ -1,0 +1,291 @@
+@startuml
+set namespaceSeparator ::
+
+class App {
+  +State<App> createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- App
+
+class _AppState {
+  -Future<FirebaseApp> _firebaseInit
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::State" <|-- _AppState
+
+class AppConfig {
+  +bool logProviders
+  +bool logCamera
+  +bool logDetection
+  +bool logLowResCapture
+  +bool logAuth
+  +String classifierAsset
+  +String faceEncodingModelAsset
+  +String faceEmotionModelAsset
+  {static} +AppConfig of()
+  {static} +AppConfig once()
+  +bool updateShouldNotify()
+}
+
+"flutter::src::widgets::framework.dart::InheritedWidget" <|-- AppConfig
+
+class ProviderConfig {
+  +Widget child
+  +Widget build()
+}
+
+ProviderConfig o-- "flutter::src::widgets::framework.dart::Widget"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- ProviderConfig
+
+class AppProvider {
+  +BuildContext context
+  +bool printLogs
+  +void notify()
+}
+
+AppProvider o-- "flutter::src::widgets::framework.dart::BuildContext"
+"flutter::src::foundation::change_notifier.dart::ChangeNotifier" <|-- AppProvider
+
+class NotificationType {
+  +int index
+  {static} +List<NotificationType> values
+  {static} +NotificationType Cancel
+  {static} +NotificationType Start
+  {static} +NotificationType Success
+  {static} +NotificationType Failure
+}
+
+NotificationType o-- NotificationType
+"dart::core::Enum" <|-- NotificationType
+
+class AuthException {
+}
+
+BaseException <|-- AuthException
+
+class BaseException {
+  +String message
+  +String toString()
+}
+
+"dart::core::Exception" <|-- BaseException
+
+class AuthProvider {
+  -AuthService _service
+  -bool _loggedIn
+  -bool _loading
+  -String? _username
+  -Exception? _error
+  +bool loggedIn
+  +bool loading
+  +String? username
+  +Exception? error
+  +Future<void> login()
+  +Future<void> register()
+}
+
+AuthProvider o-- AuthService
+AppProvider <|-- AuthProvider
+
+class CameraProvider {
+  -Completer<void> _controllerInitialized
+  -CameraController? _controller
+  -CameraDescription? _selectedCamera
+  +CameraController? controller
+  +Completer<void> controllerInitialized
+  +Future<void> dispose()
+  +Future<void> didChangeAppLifecycleState()
+}
+AppProvider <|-- CameraProvider
+"flutter::src::widgets::binding.dart::WidgetsBindingObserver" <|-- CameraProvider
+
+class FaceBoundsProvider {
+  -Future<FaceDetectionService> _service
+  -List<Rect> _bounds
+  -Completer<void> _currentDetection
+  -LowResImageProvider _imageProvider
+  +List<Rect> bounds
+  +dynamic resetImageProvider()
+  -dynamic _acceptImage()
+}
+FaceBoundsProvider o-- LowResImageProvider
+AppProvider <|-- FaceBoundsProvider
+
+class LowResImageProvider {
+  -ImageConversionService _conversionService
+  -Image? _image
+  -bool _capturing
+  -CameraProvider _cameraProvider
+  +Image? image
+  +bool capturingLowRes
+  +dynamic resetCameraProvider()
+  +Future<void> startCapturing()
+  +Future<void> stopCapturing()
+  -Future<void> _onImageReceived()
+  +Future<void> dispose()
+  +Future<void> didChangeAppLifecycleState()
+}
+
+LowResImageProvider o-- ImageConversionService
+LowResImageProvider o-- CameraProvider
+AppProvider <|-- LowResImageProvider
+"flutter::src::widgets::binding.dart::WidgetsBindingObserver" <|-- LowResImageProvider
+
+class AuthScreen {
+  {static} +String route
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- AuthScreen
+
+class LivePreviewScreen {
+  {static} +String route
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- LivePreviewScreen
+
+class WelcomeScreen {
+  {static} +String route
+  +String username
+  +State<WelcomeScreen> createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- WelcomeScreen
+
+class _WelcomeScreenState {
+  +Future<FaceEmotionService> emotionServiceFuture
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::State" <|-- _WelcomeScreenState
+
+class AuthService {
+  -void _checkFaceEncoding()
+  +Future<void> register()
+  +double dist()
+  +Future<String> login()
+}
+
+class FaceDetectionService {
+  +String classifierAsset
+  +Future<void> init()
+  +Future<List<Rect>> detect()
+}
+
+class FaceEmotionService {
+  -Interpreter? _interpreter
+  +String modelPath
+  +Future<void> loadModel()
+  +FaceEmotions detectEmotion()
+  -Float32List _preprocess()
+  -Float32List _imageToByteListFloat32()
+}
+
+FaceEmotionService o-- "tflite_flutter::src::interpreter.dart::Interpreter"
+
+class FaceEmotions {
+  -List<dynamic> _emotions
+  +double angry
+  +double disgust
+  +double fear
+  +double happy
+  +double neutral
+  +double sad
+  +double surprised
+  +String toString()
+  +List<List<String>> getOrderedEmotions()
+  +Map<String, dynamic> toJson()
+}
+
+class FaceEncodingService {
+  -Interpreter? _interpreter
+  +String modelPath
+  +Future<void> loadModel()
+  +List<dynamic> encode()
+  -Float32List _preprocess()
+  -Float32List _imageToByteListFloat32()
+}
+
+FaceEncodingService o-- "tflite_flutter::src::interpreter.dart::Interpreter"
+
+class ImageConversionService {
+  -List<Pointer<Uint8>> _planeBuffers
+  -List<int> _planeSizes
+  -Pointer<Uint32>? _imageBuffer
+  -int? _imageWidth
+  -int? _imageHeight
+  +Image yuvToRgb()
+  -dynamic _ensureBuffersReady()
+  -void _free()
+  +void dispose()
+}
+
+class CameraApp {
+  +_CameraAppState createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- CameraApp
+
+class UtilValidators {
+  {static} +UtilValidator guard()
+}
+
+class UtilValidator {
+  -String? _value
+  -String? _message
+  +String? message
+  -UtilValidator _currentMessageOr()
+  +UtilValidator required()
+  +UtilValidator atLeast()
+  +UtilValidator contains()
+  +UtilValidator equal()
+}
+
+class AuthWidget {
+  -Future<FaceEncodingService> _faceEncodingService
+  +_AuthWidgetState createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- AuthWidget
+
+class _AuthWidgetState {
+  -GlobalKey<FormState> _registerFormKey
+  -TextEditingController _usernameController
+  +void dispose()
+  +Widget build()
+  -void _login()
+  -void _register()
+  -SnackBar _textSnackbar()
+}
+
+_AuthWidgetState o-- "flutter::src::widgets::framework.dart::GlobalKey<FormState>"
+_AuthWidgetState o-- "flutter::src::widgets::editable_text.dart::TextEditingController"
+"flutter::src::widgets::framework.dart::State" <|-- _AuthWidgetState
+
+class LivePreview {
+  -Future<FaceEncodingService> _encodingService
+  +_LivePreviewState createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- LivePreview
+
+class _LivePreviewState {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::State" <|-- _LivePreviewState
+
+class BoundingBoxPainter {
+  -List<Rect> _bounds
+  -Size _boundsResolution
+  +List<Rect> bounds
+  +Size boundsResolution
+  +void paint()
+  +bool shouldRepaint()
+}
+"flutter::src::rendering::custom_paint.dart::CustomPainter" <|-- BoundingBoxPainter
+
+
+@enduml
